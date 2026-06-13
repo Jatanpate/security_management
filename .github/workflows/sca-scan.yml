@@ -1,0 +1,30 @@
+name: SCA Scan
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@master
+        with:
+          project: 'NodeGoat'
+          path: '.'
+          format: 'HTML'
+          args: >
+            --enableRetired
+            --failOnCVSS 7
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports/
