@@ -1,0 +1,52 @@
+name: CodeQL SAST Scan
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '0 6 * * 1'    # every Monday 6am - good for catching new CVEs
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write    # needed to post findings to Security tab
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]    # NodeGoat is JS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended    # broader ruleset beyond defaults
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+        # CodeQL tries to auto-detect how to build your project
+        # For interpreted languages like JS it just indexes the files
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+          output: sarif-results        # SARIF format for Security tab
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: sarif-results/${{ matrix.language }}.sarif
