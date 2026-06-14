@@ -20,12 +20,9 @@ regex = '''mongodb(\+srv)?://[^:]+:[^@]+@'''
 tags = ["mongodb", "database"]
 
 [allowlist]
-# ignore test files and docs
 paths = [
-    '''.gitleaks.toml''',
-    '''test/''',
-    '''*.md'''
+    '''\.gitleaks\.toml''',
+    '''test/.*''',
+    '''.*\.md'''
 ]
-
-# ignore specific commits (add your test commit hashes here)
 commits = []
