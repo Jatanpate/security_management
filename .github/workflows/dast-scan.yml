@@ -5,7 +5,7 @@ on:
     branches: [ master ]
   workflow_dispatch:
   schedule:
-    - cron: '0 2 * * 0'
+    - cron: '0 2 * * 0'    # every Sunday 2am - full scan weekly
 
 jobs:
   zap-baseline-scan:
@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write
-      issues: write
+      security-events: write    # post findings to Security tab
+      issues: write             # ZAP can open GitHub issues for findings
 
     steps:
       - name: Checkout code
@@ -24,7 +24,7 @@ jobs:
         run: |
           docker compose up -d
           echo "Waiting for app to be healthy..."
-          sleep 30
+          sleep 30    # give app time to start
 
       - name: Verify app is running
         run: |
@@ -35,18 +35,18 @@ jobs:
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: 'http://localhost:4000'
-          rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a'
-          allow_issue_writing: false
-          artifact_name: 'zap_baseline_report'
+          rules_file_name: '.zap/rules.tsv'    # custom rules config
+          cmd_options: '-a'                      # include alpha rules
+          allow_issue_writing: false             # dont auto create issues
+          artifact_name: 'zap-baseline-report'
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always()    # upload even if scan finds issues
         with:
-          name: zap_baseline_report
+          name: zap-baseline-report
           path: report_html.html
 
       - name: Stop application
-        if: always()
+        if: always()    # always cleanup even if previous steps fail
         run: docker compose down
