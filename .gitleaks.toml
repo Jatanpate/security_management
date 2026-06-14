@@ -1,0 +1,31 @@
+# Gitleaks configuration file
+title = "NodeGoat Gitleaks Config"
+
+[extend]
+# extend the default ruleset
+useDefault = true
+
+[[rules]]
+# custom rule - catches any generic API key pattern
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api_key|apikey|api-key)\s*=\s*['"]?([a-zA-Z0-9]{20,})['"]?'''
+tags = ["api", "key"]
+
+[[rules]]
+# catches hardcoded mongodb URIs - NodeGoat specific
+id = "mongodb-connection-string"
+description = "MongoDB Connection String"
+regex = '''mongodb(\+srv)?://[^:]+:[^@]+@'''
+tags = ["mongodb", "database"]
+
+[allowlist]
+# ignore test files and docs
+paths = [
+    '''.gitleaks.toml''',
+    '''test/''',
+    '''*.md'''
+]
+
+# ignore specific commits (add your test commit hashes here)
+commits = []
