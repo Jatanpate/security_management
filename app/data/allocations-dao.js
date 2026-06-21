@@ -1,7 +1,7 @@
 const UserDAO = require("./user-dao").UserDAO;
 
 /* The AllocationsDAO must be constructed with a connected database object */
-const AllocationsDAO = function(db){
+const AllocationsDAO = function (db) {
 
     "use strict";
 
@@ -74,41 +74,45 @@ const AllocationsDAO = function(db){
                 }
                 throw `The user supplied threshold: ${parsedThreshold} was not valid.`;
                 */
+                const parsedThreshold = parseInt(threshold, 10);
+                if (parsedThreshold >= 0 && parsedThreshold <= 99) {
+                    return
+                    {
+                        $where: `this.userId == ${parsedUserId} && this.stocks > '${parsedThreshold}'`
+                    };
+                }
+                throw `the user supplied threshold: &{parsedThreshold} was not valid`;
                 return {
-                    $where: `this.userId == ${parsedUserId} && this.stocks > '${threshold}'`
+                    userId: parsedUserId
                 };
-            }
-            return {
-                userId: parsedUserId
             };
-        };
 
-        allocationsCol.find(searchCriteria()).toArray((err, allocations) => {
-            if (err) return callback(err, null);
-            if (!allocations.length) return callback("ERROR: No allocations found for the user", null);
+            allocationsCol.find(searchCriteria()).toArray((err, allocations) => {
+                if (err) return callback(err, null);
+                if (!allocations.length) return callback("ERROR: No allocations found for the user", null);
 
-            let doneCounter = 0;
-            const userAllocations = [];
+                let doneCounter = 0;
+                const userAllocations = [];
 
-            allocations.forEach( alloc => {
-                userDAO.getUserById(alloc.userId, (err, user) => {
-                    if (err) return callback(err, null);
+                allocations.forEach(alloc => {
+                    userDAO.getUserById(alloc.userId, (err, user) => {
+                        if (err) return callback(err, null);
 
-                    alloc.userName = user.userName;
-                    alloc.firstName = user.firstName;
-                    alloc.lastName = user.lastName;
+                        alloc.userName = user.userName;
+                        alloc.firstName = user.firstName;
+                        alloc.lastName = user.lastName;
 
-                    doneCounter += 1;
-                    userAllocations.push(alloc);
+                        doneCounter += 1;
+                        userAllocations.push(alloc);
 
-                    if (doneCounter === allocations.length) {
-                        callback(null, userAllocations);
-                    }
+                        if (doneCounter === allocations.length) {
+                            callback(null, userAllocations);
+                        }
+                    });
                 });
             });
-        });
+        };
+
     };
 
-};
-
-module.exports.AllocationsDAO = AllocationsDAO;
+    module.exports.AllocationsDAO = AllocationsDAO;

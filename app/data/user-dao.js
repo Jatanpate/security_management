@@ -56,6 +56,12 @@ function UserDAO(db) {
 
     this.validateLogin = (userName, password, callback) => {
 
+        // Sanitize: reject non-string values and disallow special characters
+        // to prevent NoSQL injection attacks
+        if (typeof userName !== "string" || !/^[a-zA-Z0-9_-]+$/.test(userName)) {
+            return callback(new Error("Invalid username"), null);
+        }
+
         // Helper function to compare passwords
         const comparePassword = (fromDB, fromUser) => {
             return fromDB === fromUser;
@@ -101,6 +107,11 @@ function UserDAO(db) {
     };
 
     this.getUserByUserName = (userName, callback) => {
+        // Sanitize: reject non-string values and disallow special characters
+        // to prevent NoSQL injection attacks
+        if (typeof userName !== "string" || !/^[a-zA-Z0-9_-]+$/.test(userName)) {
+            return callback(new Error("Invalid username"), null);
+        }
         usersCol.findOne({
             userName: userName
         }, callback);
