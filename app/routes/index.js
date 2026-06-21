@@ -17,7 +17,8 @@ const index = (app, db) => {
     var limiter = RateLimit({
         windowMs: 15 * 60 * 1000, // 15 minutes
         max: 100, // max 100 requests per windowMs
-        });
+        skip: () => process.env.NODE_ENV === "test"
+    });
     app.use(limiter);
     const sessionHandler = new SessionHandler(db);
     const profileHandler = new ProfileHandler(db);
