@@ -7,11 +7,18 @@ const MemosHandler = require("./memos");
 const ResearchHandler = require("./research");
 const tutorialRouter = require("./tutorial");
 const ErrorHandler = require("./error").errorHandler;
+const rateLimit = require("express-rate-limit");
+
+
 
 const index = (app, db) => {
 
     "use strict";
-
+    var limiter = RateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100, // max 100 requests per windowMs
+        });
+    app.use(limiter);
     const sessionHandler = new SessionHandler(db);
     const profileHandler = new ProfileHandler(db);
     const benefitsHandler = new BenefitsHandler(db);
@@ -68,8 +75,11 @@ const index = (app, db) => {
 
     // Handle redirect for learning resources link
     app.get("/learn", isLoggedIn, (req, res) => {
-        // Insecure way to handle redirects by taking redirect url from query string
-        return res.redirect(req.query.url);
+        const allowed_urls = ["https://example.com", "https://test.com"];
+        if (allowed_urls.includes(req.query.url)) {
+            return res.redirect(req.query.url);
+        }
+        return res.status(400).send("Invalid URL");
     });
 
     // Research Page
