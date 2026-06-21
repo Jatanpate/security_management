@@ -12,6 +12,10 @@ function ResearchHandler(db) {
     this.displayResearch = (req, res) => {
 
         if (req.query.symbol) {
+            const allowed_url = ['https://xyz.com',"https://abc.com"]
+            if(!allowed_url.includes(req.query.url)){
+                throw new Error("invalid url")
+            }
             const url = req.query.url + req.query.symbol;
             return needle.get(url, (error, newResponse, body) => {
                 if (!error && newResponse.statusCode === 200) {

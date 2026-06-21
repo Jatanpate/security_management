@@ -7,11 +7,11 @@ const session = require("express-session");
 // const csrf = require('csurf');
 const consolidate = require("consolidate"); // Templating library adapter for Express
 const swig = require("swig");
-// const helmet = require("helmet");
+const helmet = require("helmet");
 const MongoClient = require("mongodb").MongoClient; // Driver for connecting to MongoDB
 const http = require("http");
 const marked = require("marked");
-//const nosniff = require('dont-sniff-mimetype');
+const nosniff = require('dont-sniff-mimetype');
 const app = express(); // Web framework to handle routing requests
 const routes = require("./app/routes");
 const { port, db, cookieSecret } = require("./config/config"); // Application config properties
@@ -34,7 +34,14 @@ MongoClient.connect(db, (err, db) => {
         process.exit(1);
     }
     console.log(`Connected to the database`);
-
+    app.disable("x-powered-by");
+    app.use(helmet.frameguard());
+    app.use(helmet.noCache());
+    app.use(helmet.contentSecurityPolicy());
+    app.use(helmet.hsts());
+    app.use(nosniff());
+    app.use(helmet.iexss());
+    app.use(helmet.xssFilter({ setOnOldIE: true }));
     /*
     // Fix for A5 - Security MisConfig
     // TODO: Review the rest of helmet options, like "xssFilter"
@@ -76,19 +83,20 @@ MongoClient.connect(db, (err, db) => {
 
     // Enable session management using express middleware
     app.use(session({
-        // genid: (req) => {
-        //    return genuuid() // use UUIDs for session IDs
-        //},
         secret: cookieSecret,
         // Both mandatory in Express v4
         saveUninitialized: true,
-        resave: true
+        resave: true,
+        key: "sessionId",
         /*
         // Fix for A5 - Security MisConfig
         // Use generic cookie name
         key: "sessionId",
         */
-
+        cookie:{
+            httpOnly: true,
+            secure: true
+        }
         /*
         // Fix for A3 - XSS
         // TODO: Add "maxAge"
@@ -134,7 +142,7 @@ MongoClient.connect(db, (err, db) => {
     // Template system setup
     swig.setDefaults({
         // Autoescape disabled
-        autoescape: false
+        autoescape: true
         /*
         // Fix for A3 - XSS, enable auto escaping
         autoescape: true // default value
