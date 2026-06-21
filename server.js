@@ -36,12 +36,10 @@ MongoClient.connect(db, (err, db) => {
     console.log(`Connected to the database`);
     app.disable("x-powered-by");
     app.use(helmet.frameguard());
-    app.use(helmet.noCache());
     app.use(helmet.contentSecurityPolicy());
     app.use(helmet.hsts());
     app.use(nosniff());
-    app.use(helmet.iexss());
-    app.use(helmet.xssFilter({ setOnOldIE: true }));
+    app.use(helmet.xssFilter());
     /*
     // Fix for A5 - Security MisConfig
     // TODO: Review the rest of helmet options, like "xssFilter"
@@ -95,7 +93,7 @@ MongoClient.connect(db, (err, db) => {
         */
         cookie:{
             httpOnly: true,
-            secure: true
+            secure: process.env.NODE_ENV === "production"
         }
         /*
         // Fix for A3 - XSS
